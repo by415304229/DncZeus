@@ -104,14 +104,22 @@
                 </ButtonGroup>-->
                 <Button icon="md-search" type="primary" @click="handleRefresh" title="查询">查询</Button>
                 <Button
+                  icon="md-build"
+                  v-can="'edit'"
+                  type="primary"
+                  @click="handleEdit"
+                  title="编辑"
+                >编辑</Button>
+                <Button icon="md-cart" type="primary" @click="handleCart" title="添加购物车">添加购物车</Button>
+                <!-- <Button
                   icon="md-search"
                   v-can="'export'"
                   type="primary"
                   @click="handleExport"
                   title="查询"
-                >导出</Button>
+                >导出</Button>-->
                 <Upload :before-upload="handleImport" action>
-                  <Button icon="ios-cloud-upload-outline">导入</Button>
+                  <Button v-can="'import'" icon="ios-cloud-upload-outline">导入</Button>
                 </Upload>
                 <!-- <Button icon="md-search" v-can="'import'" type="primary" title="导入">
                   <input type="file" accept=".xlsx, .xls" @change="handleImport"></input>导入
@@ -137,82 +145,38 @@
       :mask="false"
       :styles="styles"
     >
-      <Form :model="formModel.fields" ref="formIcon" :rules="formModel.rules">
-        <FormItem label="图标名称" prop="code" label-position="left">
-          <Input v-model="formModel.fields.code" placeholder="请输入图标名称" />
+      <Form :model="formModel.fields" ref="formIcon">
+        <FormItem label="料件号" label-position="left">
+          <Input v-model="formModel.fields.itemNo" placeholder="请输入料件号" />
         </FormItem>
-        <FormItem label="自定义图标" label-position="top">
-          <Input v-model="formModel.fields.custom" placeholder="请输入自定义图标" />
+        <FormItem label="型号" label-position="top">
+          <Input v-model="formModel.fields.type" placeholder="请输入型号" />
         </FormItem>
-        <Row :gutter="8">
-          <Col span="12">
-            <FormItem label="图标状态" label-position="left">
-              <i-switch
-                size="large"
-                v-model="formModel.fields.status"
-                :true-value="1"
-                :false-value="0"
-              >
-                <span slot="open">正常</span>
-                <span slot="close">禁用</span>
-              </i-switch>
-            </FormItem>
-          </Col>
-          <Col span="12">
-            <FormItem label="图标大小" label-position="left">
-              <InputNumber v-model="formModel.fields.size" placeholder="图标大小"></InputNumber>
-            </FormItem>
-          </Col>
-        </Row>
-        <Row :gutter="8">
-          <Col span="12">
-            <FormItem label="图标颜色" label-position="top">
-              <ColorPicker v-model="formModel.fields.color" placeholder="图标颜色" />
-            </FormItem>
-          </Col>
-        </Row>
+        <FormItem label="品牌" label-position="top">
+          <Input v-model="formModel.fields.brand" placeholder="请输入品牌" />
+        </FormItem>
+        <FormItem label="原产国" label-position="top">
+          <Input v-model="formModel.fields.type" placeholder="请输入原产国" />
+        </FormItem>
+        <FormItem label="税号" label-position="top">
+          <Input v-model="formModel.fields.texNo" placeholder="请输入税号" />
+        </FormItem>
+        <FormItem label="英文品名" label-position="top">
+          <Input v-model="formModel.fields.name_en" placeholder="请输入英文品名" />
+        </FormItem>
+        <FormItem label="中文品名" label-position="top">
+          <Input v-model="formModel.fields.name_zh" placeholder="请输入中文品名" />
+        </FormItem>
+        <FormItem label="申报要素" label-position="top">
+          <Input v-model="formModel.fields.element" placeholder="请输入申报要素" />
+        </FormItem>
         <FormItem label="备注" label-position="top">
-          <Input
-            type="textarea"
-            v-model="formModel.fields.description"
-            :rows="4"
-            placeholder="图标备注信息"
-          />
+          <Input type="textarea" v-model="formModel.fields.note" :rows="4" placeholder="备注信息" />
         </FormItem>
       </Form>
       <div class="demo-drawer-footer">
-        <Button icon="md-checkmark-circle" type="primary" @click="handleSubmitIcon">保 存</Button>
+        <Button icon="md-checkmark-circle" type="primary" @click="handleSubmitProduct">保 存</Button>
         <Button style="margin-left: 8px" icon="md-close" @click="formModel.opened = false">取 消</Button>
-        <Button
-          style="margin-left: 8px"
-          icon="md-arrow-up"
-          @click="handleOpenBatchImportDrawer"
-        >批量导入</Button>
-      </div>
-    </Drawer>
-    <Drawer
-      title="批量导入图标"
-      v-model="formModel.batchImport.opened"
-      width="360"
-      :mask-closable="false"
-    >
-      <Form>
-        <FormItem label="批量图标" label-position="top">
-          <Input
-            type="textarea"
-            v-model="formModel.batchImport.icons"
-            :rows="16"
-            placeholder="以回车分隔,每行一个图标名称"
-          />
-        </FormItem>
-      </Form>
-      <div class="demo-drawer-footer">
-        <Button icon="md-checkmark-circle" type="primary" @click="handleBatchSubmitIcon">保 存</Button>
-        <Button
-          style="margin-left: 8px"
-          icon="md-close"
-          @click="formModel.batchImport.opened = false"
-        >取 消</Button>
       </div>
     </Drawer>
   </div>
@@ -220,7 +184,7 @@
 
 <script>
 import Tables from "_c/tables";
-import { getProductList, importProduct } from "@/api/product";
+import { getProductList, importProduct, editProduct } from "@/api/product";
 import * as XLSX from "xlsx";
 export default {
   name: "product_declar",
@@ -243,14 +207,15 @@ export default {
         selection: [],
         fields: {
           id: 0,
-          code: "",
-          size: 24,
-          color: "",
-          custom: "",
-          isLocked: 0,
-          status: 1,
-          isDeleted: 0,
-          description: ""
+          itemNo: "",
+          type: "",
+          country: "",
+          brand: "",
+          texNo: "",
+          name_en: "",
+          name_zh: "",
+          element: "",
+          note: ""
         },
         rules: {
           code: [
@@ -295,7 +260,24 @@ export default {
             { title: "英文品名", key: "name_en", width: 200 },
             { title: "中文品名", key: "name_zh", width: 200 },
             { title: "申报要素", key: "element", width: 500 },
-            { title: "备注", key: "note", width: 200 }
+                        { title: "备注", key: "note", width: 200 },
+            {
+              title: "创建时间",
+              width: 120,
+              ellipsis: true,
+              tooltip: true,
+              key: "createdOn"
+            },
+            { title: "创建者", width: 120, key: "createdByUserName" },
+                        {
+              title: "编辑时间",
+              width: 120,
+              ellipsis: true,
+              tooltip: true,
+              key: "modifiedOn"
+            },
+            { title: "编辑者", width: 120, key: "modifiedByUserName" }
+
           ],
           data: [],
           selection: []
@@ -312,10 +294,10 @@ export default {
   computed: {
     formTitle() {
       if (this.formModel.mode === "create") {
-        return "创建图标";
+        return "创建产品申报要素";
       }
       if (this.formModel.mode === "edit") {
-        return "编辑图标";
+        return "编辑产品申报要素";
       }
       return "";
     },
@@ -347,9 +329,22 @@ export default {
       this.handleOpenFormWindow();
     },
     handleEdit(params) {
+      if (
+        !this.stores.product.selection ||
+        this.stores.product.selection.length < 1
+      ) {
+        this.$Message.warning("请选择一条数据");
+      }
+      if (
+        this.stores.product.selection &&
+        this.stores.product.selection.length > 1
+      ) {
+        this.$Message.warning("最多选择一条数据");
+      }
+      console.log(this.stores.product.selection);
+      this.formModel.fields = this.stores.product.selection[0];
       this.handleSwitchFormModeToEdit();
       this.handleResetFormIcon();
-      this.doLoadIcon(params.row.id);
     },
     handleSelect(selection, row) {
       this.stores.product.selection = selection;
@@ -358,7 +353,7 @@ export default {
       this.stores.product.selection = selection;
     },
     handleSelectionChange(selection) {
-      this.formModel.selection = selection;
+      this.stores.product.selection = selection;
     },
     handleRefresh() {
       this.loadProductList();
@@ -368,30 +363,28 @@ export default {
       this.handleOpenFormWindow();
       this.handleResetFormIcon();
     },
-    handleSubmitIcon() {
-      let valid = this.validateIconForm();
-      if (valid) {
+    handleSubmitProduct() {
         if (this.formModel.mode === "create") {
           this.doCreateIcon();
         }
         if (this.formModel.mode === "edit") {
-          this.doEditIcon();
+          this.doEditProcudt();
         }
-      }
     },
     handleResetFormIcon() {
       this.$refs["formIcon"].resetFields();
     },
-    doCreateIcon() {
-      // createIcon(this.formModel.fields).then(res => {
-      //   if (res.data.code === 200) {
-      //     this.$Message.success(res.data.message);
-      //     this.loadProductList();
-      //     this.handleCloseFormWindow();
-      //   } else {
-      //     this.$Message.warning(res.data.message);
-      //   }
-      // });
+
+    doEditProcudt() {
+      editProduct(this.formModel.fields).then(res => {
+        if (res.data.code === 200) {
+          this.$Message.success(res.data.message);
+          this.loadProductList();
+          this.handleCloseFormWindow();
+        } else {
+          this.$Message.warning(res.data.message);
+        }
+      });
     },
     doEditIcon() {
       // editIcon(this.formModel.fields).then(res => {
@@ -534,7 +527,7 @@ export default {
             Name_en: item["英文品名"],
             Name_zh: item["中文品名"],
             Element: item["申报要素"],
-            Note: item["备注"]
+            Note: item["备注信息"]
           };
         }); //映射对象数据
         console.log(uploadData);
@@ -554,23 +547,56 @@ export default {
         this.$Message.warning("请选择至少一条数据");
         return;
       }
-      let jsondata = JSON.parse(
-        JSON.stringify(this.stores.product.selection)
-      ); //深拷贝原始数据
+      let jsondata = JSON.parse(JSON.stringify(this.stores.product.selection)); //深拷贝原始数据
       let data = jsondata.map(item => {
         return {
-          料件号: item.itemNo,
-          型号: item.type,
-          原产国: item.country,
-          品牌: item.brand,
-          税号: item.texNo,
-          英文品名: item.name_en,
-          中文品名: item.name_zh,
-          申报要素: item.element,
-          备注: item.note
+          料件号: !item.itemNo ? "" : item.itemNo,
+          型号: !item.type ? "" : item.type,
+          原产国: !item.country ? "" : item.country,
+          品牌: !item.brand ? "" : item.brand,
+          税号: !item.texNo ? "" : item.texNo,
+          英文品名: !item.name_en ? "" : item.name_en,
+          中文品名: !item.name_zh ? "" : item.name_zh,
+          申报要素: !item.element ? "" : item.element,
+          备注信息: !item.note ? "" : item.note
         };
       }); //对象映射
       download(data, "申报要素.xlsx");
+    },
+    handleCart() {
+      if (
+        !this.stores.product.selection ||
+        this.stores.product.selection.length < 1
+      ) {
+        this.$Message.warning("请选择至少一条数据");
+        return;
+      }
+      let cartList = [];
+      let flg = true;
+      if (localStorage.cart) {
+        cartList = JSON.parse(localStorage.cart);
+      }
+
+      this.stores.product.selection.forEach(e => {
+        cartList.forEach(p => {
+          if (p.id == e.id) {
+            this.$Message.warning(
+              "添加了重复的数据,料件号：" +
+                p.itemNo +
+                "型号：" +
+                p.type +
+                "!添加失败"
+            );
+            flg = false;
+            return;
+          }
+        });
+        cartList.push(e);
+      });
+      if (flg) {
+        localStorage.cart = JSON.stringify(cartList);
+        this.$Message.success("添加成功");
+      }
     }
   },
   mounted() {

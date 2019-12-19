@@ -14,12 +14,12 @@
         </span>
       </Input>
     </FormItem>
-    <FormItem label="测试账户">
+    <!-- <FormItem label="测试账户">
       <RadioGroup v-model="form.userType" type="button" @on-change="handleUserTypeChange">
         <Radio label="超级管理员"></Radio>
         <Radio label="普通用户"></Radio>
       </RadioGroup>
-    </FormItem>
+    </FormItem> -->
     <FormItem>
       <Button
         :disabled="processing"
@@ -29,7 +29,7 @@
         :loading="loading"
       >{{btnLoginText}}</Button>
     </FormItem>
-    <p class="login-tip">欢迎使用DncZeus通用权限管理框架</p>
+    <p class="login-tip">欢迎使用</p>
   </Form>
 </template>
 <script>

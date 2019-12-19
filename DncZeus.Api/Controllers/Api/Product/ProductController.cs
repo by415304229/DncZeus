@@ -6,6 +6,8 @@ using System.Linq;
 using AutoMapper;
 using DncZeus.Api.ViewModels;
 using System.Collections.Generic;
+using System;
+using DncZeus.Api.Extensions.AuthContext;
 
 namespace DncZeus.Api.Controllers.Api
 {
@@ -60,6 +62,8 @@ namespace DncZeus.Api.Controllers.Api
                     query = query.Where(x => x.Element.Contains(payload.Element.Trim()));
                 }
                 var list = query.Paged(payload.CurrentPage, payload.PageSize).ToList();
+                //空值处理
+                list.ForEach(p => p.ItemNo = string.IsNullOrEmpty(p.ItemNo) ? " " : p.ItemNo);
                 var totalCount = query.Count();
                 var data = list.Select(_mapper.Map<Product, ProductJsonModel>);
                 var response = ResponseModelFactory.CreateResultInstance;
@@ -76,11 +80,35 @@ namespace DncZeus.Api.Controllers.Api
                 foreach (ProductJsonModel item in payload)
                 {
                     var entity = _mapper.Map<ProductJsonModel, Product>(item);
+                    entity.CreatedOn = DateTime.Now;
+                    entity.CreatedByUserGuid = AuthContextService.CurrentUser.Guid;
+                    entity.CreatedByUserName = AuthContextService.CurrentUser.DisplayName;
                     _dbContext.Product.Add(entity);
                 }
                 _dbContext.SaveChanges();
             }
                 response.SetSuccess();
+            return Ok(response);
+        }
+        [HttpPost]
+        public IActionResult Edit(ProductJsonModel model)
+        {
+            var response = ResponseModelFactory.CreateResultInstance;
+            using (_dbContext)
+            {
+                var entity = _dbContext.Product.FirstOrDefault(e => e.Id == model.Id);
+                entity.ItemNo = model.ItemNo;
+                entity.ModifiedByUserGuid = AuthContextService.CurrentUser.Guid;
+                entity.ModifiedByUserName = AuthContextService.CurrentUser.DisplayName;
+                entity.ModifiedOn = DateTime.Now;
+                entity.Name_en = model.Name_en;
+                entity.Name_zh = model.Name_zh;
+                entity.Note = model.Note;
+                entity.TexNo = model.TexNo;
+                entity.Type = model.Type;
+                _dbContext.SaveChanges();
+            }
+            response.SetSuccess();
             return Ok(response);
         }
     }

@@ -103,16 +103,17 @@
                   <Button icon="md-refresh" title="刷新" @click="handleRefresh"></Button>
                 </ButtonGroup>-->
                 <Button icon="md-search" type="primary" @click="handleRefresh" title="查询">查询</Button>
-                <!-- <Button
-                  icon="md-search"
+                <Button icon="md-cart" type="primary" @click="handleClearCart" title="清空购物车">清空购物车</Button>
+                <Button
+                  icon="md-cloud-download"
                   v-can="'export'"
                   type="primary"
                   @click="handleExport"
-                  title="查询"
+                  title="导出"
                 >导出</Button>
-                <Upload :before-upload="handleImport" action>
+                <!-- <Upload :before-upload="handleImport" action>
                   <Button v-can="'import'" icon="ios-cloud-upload-outline">导入</Button>
-                </Upload> -->
+                </Upload>-->
                 <!-- <Button icon="md-search" v-can="'import'" type="primary" title="导入">
                   <input type="file" accept=".xlsx, .xls" @change="handleImport"></input>导入
                 </Button>-->
@@ -223,7 +224,7 @@ import Tables from "_c/tables";
 import { getProductList, importProduct } from "@/api/product";
 import * as XLSX from "xlsx";
 export default {
-  name: "home",
+  name: "product_cart",
   components: {
     Tables
   },
@@ -287,7 +288,7 @@ export default {
           },
           columns: [
             { type: "selection", width: 30, key: "handle" },
-            { title: "料件号", key: "itemNo", width: 120},
+            { title: "料件号", key: "itemNo", width: 120 },
             { title: "型号", key: "type", width: 100 },
             { title: "原产国", key: "country", width: 100 },
             { title: "品牌", key: "brand", width: 100 },
@@ -295,7 +296,13 @@ export default {
             { title: "英文品名", key: "name_en", width: 200 },
             { title: "中文品名", key: "name_zh", width: 200 },
             { title: "申报要素", key: "element", width: 500 },
-            { title: "创建时间", width: 120, ellipsis: true, tooltip: true, key: "createdOn" },
+            {
+              title: "创建时间",
+              width: 120,
+              ellipsis: true,
+              tooltip: true,
+              key: "createdOn"
+            },
             { title: "创建者", width: 120, key: "createdByUserName" },
             { title: "备注", key: "note", width: 200 }
           ],
@@ -330,10 +337,12 @@ export default {
   },
   methods: {
     loadProductList() {
-      getProductList(this.stores.product.query).then(res => {
-        this.stores.product.data = res.data.data;
-        this.stores.product.query.totalCount = res.data.totalCount;
-      });
+      if (null != localStorage.cart && localStorage.cart != "") {
+        this.stores.product.data = JSON.parse(localStorage.cart);
+        this.stores.product.query.totalCount = JSON.parse(
+          localStorage.cart
+        ).length;
+      }
     },
     handleOpenFormWindow() {
       this.formModel.opened = true;
@@ -536,7 +545,7 @@ export default {
             Name_en: item["英文品名"],
             Name_zh: item["中文品名"],
             Element: item["申报要素"],
-            Note: item["备注"]
+            Note: item["备注信息"]
           };
         }); //映射对象数据
         console.log(uploadData);
@@ -548,31 +557,26 @@ export default {
       return false;
     },
     handleExport() {
-      console.log(this.stores.product.selection);
-      if (
-        !this.stores.product.selection ||
-        this.stores.product.selection.length < 1
-      ) {
-        this.$Message.warning("请选择至少一条数据");
-        return;
-      }
-      let jsondata = JSON.parse(
-        JSON.stringify(this.stores.product.selection)
-      ); //深拷贝原始数据
+      let jsondata = JSON.parse(localStorage.cart);
       let data = jsondata.map(item => {
         return {
-          料件号: !item.itemNo ? "": item.itemNo,
-          型号: !item.type ? "": item.type,
-          原产国: !item.country ? "": item.country,
-          品牌: !item.brand ? "": item.brand,
-          税号: !item.texNo ? "": item.texNo,
-          英文品名: !item.name_en ? "": item.name_en,
-          中文品名: !item.name_zh ? "": item.name_zh,
-          申报要素: !item.element ? "": item.element,
-          备注: !item.note ? "": item.note
+          料件号: !item.itemNo ? "" : item.itemNo,
+          型号: !item.type ? "" : item.type,
+          原产国: !item.country ? "" : item.country,
+          品牌: !item.brand ? "" : item.brand,
+          税号: !item.texNo ? "" : item.texNo,
+          英文品名: !item.name_en ? "" : item.name_en,
+          中文品名: !item.name_zh ? "" : item.name_zh,
+          申报要素: !item.element ? "" : item.element,
+          备注: !item.note ? "" : item.note
         };
       }); //对象映射
       download(data, "申报要素.xlsx");
+    },
+    handleClearCart() {
+      localStorage.cart = [];
+      this.$Message.success("清空成功");
+      this.loadProductList();
     }
   },
   mounted() {

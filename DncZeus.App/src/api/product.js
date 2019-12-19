@@ -18,3 +18,12 @@ export const importProduct = (data) => {
         data
     });
 };
+export const editProduct = (data) => {
+  return axios.request({
+      withPrefix:false,
+      prefix: "api/",
+      url: 'product/edit',
+      method: 'post',
+      data
+  });
+};

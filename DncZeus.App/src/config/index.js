@@ -18,12 +18,12 @@ export default {
    */
   baseUrl: {
     dev: 'http://localhost:54321/',
-    pro: 'http://localhost:54321/',
+    pro: 'http://122.51.33.13:54321/',
     defaultPrefix:"api/v1/"
   },
   authUrl: {
     dev: 'http://localhost:54321/api/oauth/auth',
-    pro: 'http://localhost:54321/api/oauth/auth'
+    pro: 'http://122.51.33.13:54321/api/oauth/auth'
   },
   /**
    * @description 默认打开的首页的路由name值，默认为home

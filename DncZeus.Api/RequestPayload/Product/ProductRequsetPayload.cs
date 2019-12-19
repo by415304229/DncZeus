@@ -7,6 +7,7 @@ namespace DncZeus.Api.RequestPayload
 {
     public class ProductRequsetPayload : RequestPayload
     {
+        public int Id { get; set; }
         /// <summary>
         /// 料件号
         /// </summary>
