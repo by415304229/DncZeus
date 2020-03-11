@@ -156,7 +156,7 @@
           <Input v-model="formModel.fields.brand" placeholder="请输入品牌" />
         </FormItem>
         <FormItem label="原产国" label-position="top">
-          <Input v-model="formModel.fields.type" placeholder="请输入原产国" />
+          <Input v-model="formModel.fields.country" placeholder="请输入原产国" />
         </FormItem>
         <FormItem label="税号" label-position="top">
           <Input v-model="formModel.fields.texNo" placeholder="请输入税号" />
@@ -341,7 +341,6 @@ export default {
       ) {
         this.$Message.warning("最多选择一条数据");
       }
-      console.log(this.stores.product.selection);
       this.formModel.fields = this.stores.product.selection[0];
       this.handleSwitchFormModeToEdit();
       this.handleResetFormIcon();
@@ -516,7 +515,6 @@ export default {
             break; // 只取第一张表
           }
         }
-        console.log(data);
         const uploadData = data.map(item => {
           return {
             ItemNo: item["料件号"],
@@ -530,7 +528,6 @@ export default {
             Note: item["备注信息"]
           };
         }); //映射对象数据
-        console.log(uploadData);
         importProduct(uploadData);
         this.loadProductList();
       };
@@ -539,7 +536,6 @@ export default {
       return false;
     },
     handleExport() {
-      console.log(this.stores.product.selection);
       if (
         !this.stores.product.selection ||
         this.stores.product.selection.length < 1

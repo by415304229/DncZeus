@@ -79,11 +79,16 @@ namespace DncZeus.Api.Controllers.Api
             {
                 foreach (ProductJsonModel item in payload)
                 {
-                    var entity = _mapper.Map<ProductJsonModel, Product>(item);
-                    entity.CreatedOn = DateTime.Now;
-                    entity.CreatedByUserGuid = AuthContextService.CurrentUser.Guid;
-                    entity.CreatedByUserName = AuthContextService.CurrentUser.DisplayName;
-                    _dbContext.Product.Add(entity);
+                    if (!string.IsNullOrEmpty(item.ItemNo) || !string.IsNullOrEmpty(item.Name_en) || !string.IsNullOrEmpty(item.Name_zh) ||
+                        !string.IsNullOrEmpty(item.Type) || !string.IsNullOrEmpty(item.TexNo) || !string.IsNullOrEmpty(item.Country) ||
+                        !string.IsNullOrEmpty(item.Brand) || !string.IsNullOrEmpty(item.Element) || !string.IsNullOrEmpty(item.Note))
+                    {
+                        var entity = _mapper.Map<ProductJsonModel, Product>(item);
+                        entity.CreatedOn = DateTime.Now;
+                        entity.CreatedByUserGuid = AuthContextService.CurrentUser.Guid;
+                        entity.CreatedByUserName = AuthContextService.CurrentUser.DisplayName;
+                        _dbContext.Product.Add(entity);
+                    }
                 }
                 _dbContext.SaveChanges();
             }
@@ -98,6 +103,7 @@ namespace DncZeus.Api.Controllers.Api
             {
                 var entity = _dbContext.Product.FirstOrDefault(e => e.Id == model.Id);
                 entity.ItemNo = model.ItemNo;
+                entity.Brand = model.Brand;
                 entity.ModifiedByUserGuid = AuthContextService.CurrentUser.Guid;
                 entity.ModifiedByUserName = AuthContextService.CurrentUser.DisplayName;
                 entity.ModifiedOn = DateTime.Now;
@@ -106,6 +112,7 @@ namespace DncZeus.Api.Controllers.Api
                 entity.Note = model.Note;
                 entity.TexNo = model.TexNo;
                 entity.Type = model.Type;
+                entity.Element = model.Element;
                 _dbContext.SaveChanges();
             }
             response.SetSuccess();
